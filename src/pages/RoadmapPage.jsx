@@ -51,7 +51,14 @@ function RoadmapCard({ item }) {
   return (
     <Link
       to={`/learning/${item.id}`}
-      className={["section-card block p-6 transition hover:-translate-y-1 hover:border-[#4d8b41]/30 hover:shadow-xl", !item.active ? "opacity-60" : ""].join(" ")}
+      // PENTING: Mencegah user klik masuk jika masih terkunci
+      onClick={(e) => {
+        if (!item.active) e.preventDefault();
+      }}
+      className={[
+        "section-card block p-6 transition hover:-translate-y-1 hover:border-[#4d8b41]/30 hover:shadow-xl",
+        !item.active ? "opacity-60 cursor-not-allowed" : "",
+      ].join(" ")}
       aria-label={`Buka learning ${item.title}`}
     >
       <div className="flex items-start justify-between gap-4">

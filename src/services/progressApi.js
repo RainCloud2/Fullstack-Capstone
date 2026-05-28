@@ -8,15 +8,41 @@ export const fallbackProgress = {
   completedQuizzes: 0,
   averageScore: 0,
   phases: [
-    { id: "fondasi-web", progress: 0, status: "Belum dimulai" },
-    { id: "javascript", progress: 0, status: "Terkunci" },
-    { id: "react-ekosistem", progress: 0, status: "Terkunci" },
-    { id: "career-preparation", progress: 0, status: "Terkunci" },
-  ],
+    {
+      id: "fondasi-web",
+      progress: 0,
+      mastery: 0,
+      status: "Belum dimulai",
+    },
+    {
+      id: "javascript",
+      progress: 0,
+      mastery: 0,
+      status: "Terkunci",
+    },
+    {
+      id: "react-ekosistem",
+      progress: 0,
+      mastery: 0,
+      status: "Terkunci",
+    },
+    {
+      id: "career-preparation",
+      progress: 0,
+      mastery: 0,
+      status: "Terkunci",
+    },
+  ]
 };
 
 export async function fetchProgress() {
   try {
+    // Prioritaskan local storage agar progress kuis tidak ter-reset oleh backend dummy
+    const stored = getStoredProgress();
+    if (stored.totalProgress > 0 || stored.completedQuizzes > 0) {
+      return stored;
+    }
+
     const response = await fetch(`${API_URL}/api/progress`);
 
     if (!response.ok) {
@@ -61,35 +87,60 @@ export function saveProgress(progress) {
   }
 }
 
-export function applyQuizProgress(currentProgress, phaseId, percent) {
+export function applyQuizProgress(currentProgress, phaseId, percentScore, decision) {
+  const masteryPercent = Math.min(100, Math.max(0, percentScore));
+
   const phases = currentProgress.phases.map((phase, index, allPhases) => {
+    // 1. Update status materi yang baru saja dikerjakan
     if (phase.id === phaseId) {
-      const nextProgress = Math.max(phase.progress, percent);
       return {
         ...phase,
-        progress: nextProgress,
-        status: nextProgress >= 100 ? "Selesai" : "Sedang berjalan",
+        progress: masteryPercent,
+        mastery: masteryPercent,
+        status:
+          decision === "passed" || masteryPercent >= 100
+            ? "Selesai"
+            : decision === "needs_remedial" || decision === "struggling" || decision === "declining"
+            ? "Perlu review"
+            : "Sedang berjalan",
       };
     }
 
     const previousPhase = allPhases[index - 1];
-    if (phase.status === "Terkunci" && previousPhase?.id === phaseId && percent >= 80) {
-      return { ...phase, status: "Belum dimulai" };
+
+    // 2. Buka status "Terkunci" pada materi B, jika materi A (sebelumnya) sukses dilewati
+    if (
+      phase.status === "Terkunci" &&
+      previousPhase?.id === phaseId &&
+      (decision === "passed" || masteryPercent >= 75)
+    ) {
+      return {
+        ...phase,
+        status: "Belum dimulai",
+      };
     }
 
     return phase;
   });
-  const totalProgress = Math.round(phases.reduce((sum, phase) => sum + phase.progress, 0) / phases.length);
-  const nextCompletedQuizzes = currentProgress.completedQuizzes + 1;
-  const previousScoreTotal = currentProgress.averageScore * currentProgress.completedQuizzes;
-  const averageScore = Math.round((previousScoreTotal + percent) / nextCompletedQuizzes);
+
+  const totalProgress = Math.round(
+    phases.reduce((sum, phase) => sum + phase.progress, 0) /
+      phases.length
+  );
 
   return {
     ...currentProgress,
     phases,
     totalProgress,
-    completedLessons: Math.round((currentProgress.totalLessons * totalProgress) / 100),
-    completedQuizzes: nextCompletedQuizzes,
-    averageScore,
+    completedLessons: Math.round(
+      (currentProgress.totalLessons * totalProgress) / 100
+    ),
+    completedQuizzes:
+      currentProgress.completedQuizzes + 1,
+
+    averageScore: Math.round(
+      phases.reduce((sum, phase) => sum + phase.progress, 0) /
+        phases.length
+    ),
   };
 }
