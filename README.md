@@ -1,16 +1,57 @@
-# React + Vite
+# StudySync Fullstack Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project is a full-stack educational platform built with a React + Vite frontend, a Node.js API, and a Python FastAPI backend for AI-driven features (like Knowledge Tracing and Recommendations).
 
-Currently, two official plugins are available:
+## 🛠️ Project Structure
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The repository is split into three main operational parts:
+1. **Frontend:** React + Vite application (/src, /public).
+2. **Node Server:** Express/Node API (/server).
+3. **AI Backend:** Python FastAPI application (/ai-backend).
 
-## React Compiler
+## 📋 Prerequisites
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Before you begin, ensure you have the following installed on your machine:
+* Node.js (v16 or higher recommended)
+* Python (v3.8 or higher)
+* Git
 
-## Expanding the ESLint configuration
+## 🚀 Setup & Installation
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 1. Frontend & Node API Setup
+Navigate to the root directory of the project and install the JavaScript dependencies:
+$ npm install
+
+### 2. AI Backend Setup
+Open a new terminal, navigate to the AI backend directory, and set up your Python environment:
+$ cd ai-backend
+$ python -m venv venv
+
+# Activate the virtual environment (Windows)
+$ venv\Scripts\activate
+
+# Activate the virtual environment (Mac/Linux)
+$ source venv/bin/activate
+
+# Install Python dependencies
+$ pip install -r requirements.txt
+
+## 💻 Running the Application
+
+To run the full application locally, you will need to open three separate terminal windows.
+
+### Terminal 1: Run the Frontend (Vite)
+From the root directory, start the React development server:
+$ npm run dev
+*The frontend will typically run on http://localhost:5173*
+
+### Terminal 2: Run the Node Server
+From the root directory, start the StudySync Node API:
+$ npm run server
+*The Node API will run on http://localhost:3001*
+
+### Terminal 3: Run the AI Backend (FastAPI)
+Navigate to the ai-backend directory (ensure your virtual environment is activated) and start the Uvicorn server:
+$ cd ai-backend
+$ uvicorn app.main:app --reload --port 8000
+*The AI API will run on http://localhost:8000*
