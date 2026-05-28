@@ -27,13 +27,13 @@ Open a new terminal, navigate to the AI backend directory, and set up your Pytho
 $ cd ai-backend
 $ python -m venv venv
 
-# Activate the virtual environment (Windows)
+##### Activate the virtual environment (Windows)
 $ venv\Scripts\activate
 
-# Activate the virtual environment (Mac/Linux)
+##### Activate the virtual environment (Mac/Linux)
 $ source venv/bin/activate
 
-# Install Python dependencies
+##### Install Python dependencies
 $ pip install -r requirements.txt
 
 ## 💻 Running the Application
