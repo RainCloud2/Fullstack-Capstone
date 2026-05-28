@@ -2,17 +2,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 export default function SignupPage() {
-
   const navigate = useNavigate();
-
-  const [name,setName] = useState("");
-  const [dob,setDob] = useState("");
-  const [email,setEmail] = useState("");
-  const [password,setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [dob, setDob] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleSignup = () => {
-
-    if(!name || !dob || !email || !password){
+    if (!name || !dob || !email || !password) {
       alert("Please complete all fields.");
       return;
     }
@@ -21,270 +18,54 @@ export default function SignupPage() {
   };
 
   return (
-    <div
-      style={{
-        position:"fixed",
-        inset:0,
-        display:"flex",
-        overflow:"hidden",
-        background:"#fff",
-      }}
-    >
-
-      {/* LEFT */}
-
-      <div
-        style={{
-          width: "50%",
-          minWidth: 0,
-          background: "#23470F",
-          padding: "24px",
-          boxSizing: "border-box",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          gap: "12px",
-          overflow: "hidden",
-        }}
-      >
-        <div>
-          <h1
-            style={{
-              fontFamily: "Playfair Display",
-              fontSize: "40px",
-              color: "white",
-              marginBottom: "8px",
-            }}
-          >
-            StudySync AI
-          </h1>
-
-          <p
-            style={{
-              color: "white",
-              fontFamily: "Poppins",
-              fontSize: "17px",
-            }}
-          >
-            Accessible & Adaptive Learning
+    <main className="grid min-h-screen bg-[#f7f8f3] lg:grid-cols-[0.95fr_1.05fr]">
+      <section className="relative hidden overflow-hidden bg-[#1f4725] p-10 text-white lg:flex lg:flex-col lg:justify-center">
+        <div className="absolute right-[-5rem] top-[-5rem] h-64 w-64 rounded-full bg-lime-200/20 blur-3xl" />
+        <div className="relative max-w-xl">
+          <p className="text-sm font-bold uppercase tracking-[0.26em] text-lime-100">StudySync AI</p>
+          <h2 className="font-display mt-4 text-6xl leading-tight">Mulai dengan roadmap yang pas.</h2>
+          <p className="mt-5 text-lg leading-8 text-lime-50/80">
+            Buat akun, jawab onboarding singkat, lalu dapatkan jalur belajar yang sesuai targetmu.
           </p>
         </div>
-
-        {[
-          ["Belajar sesuai levelmu","AI menyesuaikan materi berdasarkan skill kamu saat ini."],
-          ["Roadmap yang jelas","Dari onboarding quiz hingga jadi engineer profesional."],
-          ["Rekomendasi course","Kursus terbaik dari berbagai platform, rekomendasi untukmu."]
-        ].map(([title,text],i)=>(
-          <div
-            key={i}
-            style={{
-              background:"#81956D",
-              borderRadius:"22px",
-              padding:"16px",
-              width:"85%",
-            }}
-          >
-            <h2
-              style={{
-                color:"white",
-                fontFamily:"Playfair Display",
-                fontSize:"22px",
-                marginBottom:"8px",
-              }}
-            >
-              {title}
-            </h2>
-
-            <p
-              style={{
-                color:"white",
-                lineHeight:"1.5",
-                fontFamily:"Poppins",
-              }}
-            >
-              {text}
-            </p>
+        <div className="relative mt-10 rounded-3xl border border-white/10 bg-white/10 p-6 backdrop-blur">
+          <p className="text-sm font-bold uppercase tracking-[0.22em] text-lime-100">Preview</p>
+          <p className="font-display mt-3 text-3xl">Frontend path, 40 materi, 8 quiz</p>
+          <div className="mt-5 h-3 overflow-hidden rounded-full bg-white/15">
+            <div className="h-full w-[30%] rounded-full bg-lime-200" />
           </div>
-        ))}
-      </div>
-      
-      {/* RIGHT */}
+        </div>
+      </section>
 
-      <div
-        style={{
-          width:"50%",
-          display:"flex",
-          justifyContent:"center",
-          alignItems:"center",
-        }}
-      >
-        <div
-          style={{
-            width:"420px",
-            maxWidth:"90%",
-          }}
-        >
-          <h1
-            style={{
-              fontSize:"42px",
-              fontFamily:"Playfair Display",
-              marginBottom:"10px",
-            }}
-          >
-            Sign up
-          </h1>
+      <section className="flex items-center justify-center px-4 py-10 sm:px-6">
+        <div className="w-full max-w-md">
+          <p className="text-sm font-bold uppercase tracking-[0.22em] text-[#4d8b41]">Create account</p>
+          <h1 className="font-display mt-3 text-5xl text-[#172017]">Sign up</h1>
+          <p className="mt-3 text-slate-500">Sign up to continue using StudySync AI.</p>
 
-          <p
-            style={{
-              color:"#999",
-              marginBottom:"28px",
-              fontFamily:"Poppins",
-            }}
-          >
-            Sign up to continue using StudySync AI.
-          </p>
-
-          <input
-            type="text"
-            placeholder="Your Name"
-            value={name}
-            onChange={(e)=>setName(e.target.value)}
-            style={inputStyle}
-          />
-
-          <p
-            style={{
-              marginBottom:"8px",
-              color:"#666",
-              fontFamily:"Poppins",
-              fontSize:"14px",
-            }}
-          >
-            Date of Birth
-          </p>
-
-          <input
-            type="date"
-            value={dob}
-            onChange={(e)=>setDob(e.target.value)}
-            style={inputStyle}
-          />
-
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e)=>setEmail(e.target.value)}
-            style={inputStyle}
-          />
-
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e)=>setPassword(e.target.value)}
-            style={inputStyle}
-          />
-
-          <button
-            onClick={handleSignup}
-            style={buttonStyle}
-          >
-            Sign up
-          </button>
-
-          <div
-            style={{
-              display:"flex",
-              alignItems:"center",
-              margin:"22px 0",
-            }}
-          >
-            <div style={{
-              flex:1,
-              height:"1px",
-              background:"#D9D9D9",
-            }}/>
-
-            <p
-              style={{
-                margin:"0 12px",
-                color:"#999",
-              }}
-            >
-              or
-            </p>
-
-            <div style={{
-              flex:1,
-              height:"1px",
-              background:"#D9D9D9",
-            }}/>
+          <div className="mt-8 space-y-4">
+            <input className="h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 outline-none transition focus:border-[#4d8b41] focus:ring-4 focus:ring-green-100" type="text" placeholder="Your Name" value={name} onChange={(e) => setName(e.target.value)} />
+            <input className="h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 outline-none transition focus:border-[#4d8b41] focus:ring-4 focus:ring-green-100" type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
+            <input className="h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 outline-none transition focus:border-[#4d8b41] focus:ring-4 focus:ring-green-100" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input className="h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 outline-none transition focus:border-[#4d8b41] focus:ring-4 focus:ring-green-100" type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
 
-          <button
-            style={{
-              ...buttonStyle,
-              background:"white",
-              color:"#111",
-              border:"1px solid #D9D9D9",
-            }}
-          >
-            Continue with Google
-          </button>
+          <button onClick={handleSignup} className="btn-primary mt-6 h-14 w-full">Sign up</button>
 
-          <p
-            style={{
-              textAlign:"center",
-              marginTop:"24px",
-              color:"#666",
-              fontFamily:"Poppins",
-            }}
-          >
+          <div className="my-6 flex items-center gap-3 text-sm text-slate-400">
+            <div className="h-px flex-1 bg-slate-200" />
+            or
+            <div className="h-px flex-1 bg-slate-200" />
+          </div>
+
+          <button className="btn-secondary h-14 w-full">Continue with Google</button>
+
+          <p className="mt-6 text-center text-sm text-slate-500">
             Already have an account?{" "}
-
-            <Link
-              to="/"
-              style={{
-                color:"#23470F",
-                textDecoration:"none",
-                fontWeight:"600",
-              }}
-            >
-              Sign in
-            </Link>
-
+            <Link to="/" className="font-bold text-[#285b2f]">Sign in</Link>
           </p>
-
         </div>
-      </div>
-
-    </div>
+      </section>
+    </main>
   );
 }
-
-const inputStyle = {
-  width:"100%",
-  height:"58px",
-  marginBottom:"18px",
-  borderRadius:"14px",
-  border:"1px solid #D9D9D9",
-  paddingLeft:"18px",
-  fontSize:"15px",
-  fontFamily:"Poppins",
-  outline:"none",
-  boxSizing:"border-box",
-};
-
-const buttonStyle = {
-  width:"100%",
-  height:"58px",
-  background:"#23470F",
-  color:"white",
-  border:"none",
-  borderRadius:"14px",
-  fontSize:"18px",
-  fontWeight:"600",
-  cursor:"pointer",
-  fontFamily:"Poppins",
-};
