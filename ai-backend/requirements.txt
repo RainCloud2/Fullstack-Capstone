@@ -1,6 +1,6 @@
-fastapi
-uvicorn[standard]
-pydantic
-numpy
-pandas
-tensorflow
+fastapi==0.103.1
+uvicorn[standard]==0.23.2
+pydantic==2.3.0
+numpy==1.24.3
+pandas==2.0.3
+tflite-runtime==2.14.0

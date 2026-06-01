@@ -7,9 +7,11 @@ from app.schemas import (
     SessionInfoResponse,
     StartSessionRequest,
     StartSessionResponse,
+    RecommendRequest,
+    CourseResult,
 )
 from app.services.model_service import get_model, predict_mastery_from_events
-from app.services.recommendation import decide_action
+from app.services.recommendation import decide_action, get_bert_recommendations
 from app.services.session_store import session_store
 
 app = FastAPI(title="Agnostic KT API", version="1.0.0")
@@ -22,9 +24,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+import os
+import urllib.request
 
 @app.on_event("startup")
 def warm_up_model():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    model_path = os.path.join(base_dir, "..", "bert_model_quantized.tflite")
+    
+    drive_file_id = "1su4W7LRC-QcerRSb5YkejXIe9n97p-z4"
+    
+    url_model_cloud = f"https://docs.google.com/uc?export=download&id={drive_file_id}"
+    
+    if not os.path.exists(model_path):
+        print("🤖 [StudySync AI] File bert_model_quantized.tflite tidak ditemukan lokal. Mengunduh dari Google Drive...")
+        try:
+            opener = urllib.request.build_opener()
+            opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+            urllib.request.install_opener(opener)
+            
+            urllib.request.urlretrieve(url_model_cloud, model_path)
+            print("✅ [StudySync AI] Unduhan model bert_model_quantized.tflite berhasil diselesaikan!")
+        except Exception as e:
+            print(f"❌ [StudySync AI] Gagal mengunduh model dari Drive: {str(e)}")
+            
     _ = get_model()
 
 
@@ -98,3 +121,11 @@ def get_session(session_id: str):
         mastery_scores=session.mastery_scores,
         answers=session.answers,
     )
+
+@app.post("/api/recommend", response_model=List[CourseResult])
+def recommend_courses(payload: RecommendRequest):
+    try:
+        recommendations = get_bert_course_recommendations(payload)
+        return recommendations
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
