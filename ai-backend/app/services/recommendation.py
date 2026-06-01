@@ -1,4 +1,9 @@
 from typing import List
+import numpy as np
+import pandas as pd
+import threading
+
+inference_lock = threading.Lock()
 
 from app.config import (
     FAIL_MASTERY_THRESHOLD,
@@ -67,7 +72,7 @@ def decide_action(mastery_score: float, mastery_history: List[float], attempts: 
 
 import os
 import unicodedata
-import tflite_runtime.interpreter as tflite
+import tensorflow.lite as tflite
 
 def load_vocab(vocab_path):
     """Memuat file vocab.txt ke dalam dictionary Python"""
@@ -169,14 +174,26 @@ def get_bert_course_recommendations(req) -> list:
     arr_mask = np.array([input_mask], dtype=np.int32)
     arr_segment = np.array([segment_ids], dtype=np.int32)
     
-    interpreter.set_tensor(input_details[0]['index'], arr_ids)
-    if len(input_details) > 1:
-        interpreter.set_tensor(input_details[1]['index'], arr_mask)
-    if len(input_details) > 2:
-        interpreter.set_tensor(input_details[2]['index'], arr_segment)
+    with inference_lock:
+        for detail in input_details:
+            name = detail['name'].lower()
+            if 'mask' in name:
+                interpreter.set_tensor(detail['index'], arr_mask)
+            elif 'type' in name or 'segment' in name:
+                interpreter.set_tensor(detail['index'], arr_segment)
+            else:
+                # Default untuk input_word_ids
+                interpreter.set_tensor(detail['index'], arr_ids)
+            
+        interpreter.invoke()
         
-    interpreter.invoke()
-    user_vector = interpreter.get_tensor(output_details[0]['index'])
+        # Tarik data dari TFLite
+        raw_data = interpreter.get_tensor(output_details[0]['index'])
+        # Gandakan data ke variabel memori Python seutuhnya
+        user_vector = np.copy(raw_data)
+        # Hancurkan referensi internal TFLite agar aman untuk request berikutnya
+        del raw_data
+        
     
     sim_scores = np.dot(user_vector, course_vectors.T).flatten()
     results_df = course_db.copy()

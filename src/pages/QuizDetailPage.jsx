@@ -21,6 +21,7 @@ export default function QuizDetailPage() {
   const [correctCount, setCorrectCount] = useState(0);
   const [quizFinished, setQuizFinished] = useState(false);
   const [sessionError, setSessionError] = useState("");
+  const [currentMastery, setCurrentMastery] = useState(0);
 
   const questionStartedAtRef = useRef(Date.now());
 
@@ -84,7 +85,7 @@ export default function QuizDetailPage() {
 
   const finishQuiz = () => {
     const answeredQuestions = currentQuestionIndex + 1;
-    const quizPercent = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
+    const masteryPercent = Math.round(currentMastery * 100);
 
     const finalDecision = lastDecision || "continue";
     const roadmapPercent =
@@ -98,7 +99,7 @@ export default function QuizDetailPage() {
       answeredQuestions,
       correctCount,
       incorrectCount: answeredQuestions - correctCount,
-      quizPercent,
+      quizPercent: masteryPercent,
       roadmapPercent,
       decision: finalDecision,
       reason: lastReason || "",
@@ -143,6 +144,9 @@ export default function QuizDetailPage() {
       setLastDecision(result.decision ?? "continue");
       setLastReason(result.reason ?? "");
       setShouldStopQuiz(Boolean(result.should_stop_quiz));
+
+      setCurrentMastery(masteryScore);
+
       setIsSubmitted(true);
 
       const debugSnapshot = {

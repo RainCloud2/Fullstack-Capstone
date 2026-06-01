@@ -1,6 +1,7 @@
+from typing import List
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-
+import traceback
 from app.schemas import (
     AnswerInput,
     AnswerResponse,
@@ -11,7 +12,7 @@ from app.schemas import (
     CourseResult,
 )
 from app.services.model_service import get_model, predict_mastery_from_events
-from app.services.recommendation import decide_action, get_bert_recommendations
+from app.services.recommendation import decide_action, get_bert_course_recommendations
 from app.services.session_store import session_store
 
 app = FastAPI(title="Agnostic KT API", version="1.0.0")
@@ -122,10 +123,11 @@ def get_session(session_id: str):
         answers=session.answers,
     )
 
-@app.post("/api/recommend", response_model=List[CourseResult])
+@app.post("/api/recommend", response_model=list[CourseResult])
 def recommend_courses(payload: RecommendRequest):
     try:
         recommendations = get_bert_course_recommendations(payload)
-        return recommendations
+        return recommendations 
     except Exception as e:
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))

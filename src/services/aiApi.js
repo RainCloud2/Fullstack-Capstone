@@ -61,4 +61,11 @@ export async function submitQuizAnswer({
   });
 }
 
+export async function getCourseRecommendations(payload) {
+  return requestJson("/api/recommend", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
 export { getOrCreateAnonymousUserId };

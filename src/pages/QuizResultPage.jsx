@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import AppNavbar from "../components/AppNavbar";
+import { getCourseRecommendations } from "../services/aiApi";
 
 const STORAGE_KEY = "studysync-last-quiz-result";
 
 export default function QuizResultPage() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const [recommendations, setRecommendations] = useState([]);
+  const [loadingRecs, setLoadingRecs] = useState(false);
 
   useEffect(() => {
     try {
@@ -22,6 +25,37 @@ export default function QuizResultPage() {
       setError(`${err.message} Pastikan kamu sudah menyelesaikan quiz sebelumnya.`);
     }
   }, []);
+
+  useEffect(() => {
+    if (!result) return;
+
+    async function fetchAIRecommendations() {
+      setLoadingRecs(true);
+      try {
+        // Tentukan tingkat kesulitan dan kalimat prompt berdasarkan hasil KT AI
+        const isStruggling = result.decision === "needs_remedial" || result.decision === "declining";
+        
+        const payload = {
+          pretest_profile_text: isStruggling 
+            ? `Saya butuh belajar dasar-dasar tentang ${result.quizTitle} dari awal`
+            : `Saya ingin materi lanjutan dan praktik tentang ${result.quizTitle}`,
+          taken_courses: [],
+          preferred_difficulty: isStruggling ? "Beginner" : "Intermediate",
+          skip_beginner: !isStruggling,
+          top_n: 2 // Ambil 2 rekomendasi terbaik saja agar tidak kepenuhan
+        };
+
+        const recs = await getCourseRecommendations(payload);
+        setRecommendations(recs);
+      } catch (err) {
+        console.error("Gagal mengambil rekomendasi", err);
+      } finally {
+        setLoadingRecs(false);
+      }
+    }
+
+    fetchAIRecommendations();
+  }, [result]);
 
   const percent = useMemo(() => {
     if (!result) return 0;
@@ -194,28 +228,45 @@ export default function QuizResultPage() {
 
           <div className="section-card p-6">
             <h2 className="font-display text-2xl text-[#172017]">Rekomendasi course AI</h2>
-            <div className="mt-4 rounded-3xl border border-dashed border-[#4d8b41]/30 bg-[#f7fff4] p-5">
-              <p className="text-sm font-bold uppercase tracking-[0.16em] text-[#4d8b41]">
-                Template slot
-              </p>
-              <p className="mt-3 text-sm leading-7 text-slate-600">
-                Di sini nanti kamu bisa pasang rekomendasi course dari AI, misalnya:
-                <br />
-                <b>“Ulangi Flexbox dulu sebelum lanjut ke JavaScript”</b>
-                <br />
-                atau
-                <br />
-                <b>“Lanjut ke fase berikutnya”</b>
-              </p>
-
-              <div className="mt-5 rounded-2xl bg-white p-4 shadow-sm">
-                <p className="text-sm font-semibold text-[#172017]">Contoh output yang bisa dipakai nanti</p>
-                <ul className="mt-3 space-y-2 text-sm text-slate-600">
-                  <li>• Recommended course title</li>
-                  <li>• Short explanation</li>
-                  <li>• Confidence / priority</li>
-                </ul>
-              </div>
+            
+            <div className="mt-4">
+              {loadingRecs ? (
+                <div className="rounded-3xl border border-dashed border-[#4d8b41]/30 bg-[#f7fff4] p-5 text-center">
+                  <p className="text-sm font-bold text-[#285b2f] animate-pulse">
+                    AI sedang meracik rekomendasi kursus untukmu...
+                  </p>
+                </div>
+              ) : recommendations.length > 0 ? (
+                <div className="flex flex-col gap-3">
+                  {recommendations.map((course, idx) => (
+                    <a 
+                      key={idx}
+                      href={course.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="group flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-[#4d8b41] hover:shadow-md"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="rounded-full bg-[#e8ffe3] px-2 py-1 text-xs font-bold text-[#285b2f]">
+                          {course.match_score}% Cocok
+                        </span>
+                        <span className="text-xs font-semibold text-slate-500 capitalize">
+                          {course.difficulty}
+                        </span>
+                      </div>
+                      <h3 className="font-bold text-[#172017] group-hover:text-[#285b2f]">
+                        {course.title}
+                      </h3>
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-5 text-center">
+                  <p className="text-sm text-slate-500">
+                    Belum ada rekomendasi kursus yang tersedia saat ini.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </section>
