@@ -49,3 +49,16 @@ class SessionInfoResponse(BaseModel):
     attempts: int
     mastery_scores: List[float]
     answers: List[dict]
+
+class RecommendRequest(BaseModel):
+    pretest_profile_text: str
+    taken_courses: Optional[List[str]] = []
+    preferred_difficulty: Optional[str] = None
+    skip_beginner: Optional[bool] = False
+    top_n: Optional[int] = 5
+
+class CourseResult(BaseModel):
+    title: str
+    url: str
+    difficulty: str
+    match_score: float
