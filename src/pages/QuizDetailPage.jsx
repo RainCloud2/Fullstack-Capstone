@@ -89,7 +89,7 @@ export default function QuizDetailPage() {
 
     const finalDecision = lastDecision || "continue";
     const roadmapPercent =
-      finalDecision === "passed" ? 100 : Math.max(quizPercent, 0);
+      finalDecision === "passed" ? 100 : Math.max(masteryPercent, 0);
 
     const finalSummary = {
       phaseId: phase.id,
