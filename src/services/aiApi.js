@@ -69,3 +69,16 @@ export async function getCourseRecommendations(payload) {
 }
 
 export { getOrCreateAnonymousUserId };
+
+export async function getRecommendations(payload) {
+  return requestJson("/api/recommend", {
+    method: "POST",
+    body: JSON.stringify({
+      pretest_profile_text: payload.pretest_profile_text,
+      taken_courses: payload.taken_courses || [],
+      preferred_difficulty: payload.preferred_difficulty || null,
+      skip_beginner: payload.skip_beginner || false,
+      top_n: payload.top_n || 5
+    }),
+  });
+}

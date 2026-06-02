@@ -1,6 +1,8 @@
-fastapi==0.103.1
-uvicorn[standard]==0.23.2
-pydantic==2.3.0
-numpy==1.26.4
-pandas==2.1.4
-tensorflow-cpu==2.16.1
+fastapi
+uvicorn[standard]
+pydantic
+numpy
+pandas
+tensorflow
+scikit-learn
+sentence-transformers
