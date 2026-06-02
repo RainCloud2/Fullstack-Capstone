@@ -106,7 +106,7 @@ export default function QuizDetailPage() {
       finishedAt: new Date().toISOString(),
     };
 
-    sessionStorage.setItem("studysync-last-quiz-result", JSON.stringify(finalSummary));
+    localStorage.setItem("studysync-last-quiz-result", JSON.stringify(finalSummary));
 
     const currentProgress = getStoredProgress() ?? fallbackProgress;
     // PENTING: Tambahkan finalDecision ke applyQuizProgress
@@ -169,7 +169,7 @@ export default function QuizDetailPage() {
       };
 
       window.__QUIZ_AI_DEBUG__ = debugSnapshot;
-      window.sessionStorage.setItem("studysync-last-ai", JSON.stringify(debugSnapshot));
+      window.localStorage.setItem("studysync-last-ai", JSON.stringify(debugSnapshot));
       console.debug("[Quiz AI Debug]", debugSnapshot);
     } catch (error) {
       setSessionError(error.message || "Gagal mengirim jawaban ke AI.");

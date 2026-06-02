@@ -1,7 +1,7 @@
 const AI_API_URL = import.meta.env.VITE_AI_API_URL || "http://localhost:8000";
 const ANON_USER_KEY = "studysync-anon-user-id";
 
-function getOrCreateAnonymousUserId() {
+export function getOrCreateAnonymousUserId() {
   if (typeof window === "undefined") return "anonymous";
 
   const stored = window.localStorage.getItem(ANON_USER_KEY);
@@ -61,16 +61,8 @@ export async function submitQuizAnswer({
   });
 }
 
+// Satu fungsi utama untuk menarik rekomendasi SBERT
 export async function getCourseRecommendations(payload) {
-  return requestJson("/api/recommend", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-}
-
-export { getOrCreateAnonymousUserId };
-
-export async function getRecommendations(payload) {
   return requestJson("/api/recommend", {
     method: "POST",
     body: JSON.stringify({

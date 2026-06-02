@@ -1,7 +1,14 @@
+
+import os
+
+os.environ["USE_TF"] = "0"
+os.environ["USE_TORCH"] = "1"
+
 from typing import List
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import traceback
+
 from app.schemas import (
     AnswerInput,
     AnswerResponse,
@@ -12,7 +19,8 @@ from app.schemas import (
     CourseResult,
 )
 from app.services.model_service import get_model, predict_mastery_from_events
-from app.services.recommendation import decide_action, get_bert_course_recommendations
+# Import sbert_model dari recommendation
+from app.services.recommendation import decide_action, get_bert_course_recommendations, sbert_model
 from app.services.session_store import session_store
 
 app = FastAPI(title="Agnostic KT API", version="1.0.0")
@@ -25,37 +33,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-import os
-import urllib.request
-
 @app.on_event("startup")
 def warm_up_model():
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    model_path = os.path.join(base_dir, "..", "bert_model_quantized.tflite")
-    
-    drive_file_id = "1k9JgC9YeBctbq0KOWqjUBvKu-OLbBMtH"
-    
-    url_model_cloud = f"https://drive.google.com/uc?export=download&id{drive_file_id}"
-    
-    if not os.path.exists(model_path):
-        print("🤖 [StudySync AI] File bert_model_quantized.tflite tidak ditemukan lokal. Mengunduh dari Google Drive...")
-        try:
-            opener = urllib.request.build_opener()
-            opener.addheaders = [('User-agent', 'Mozilla/5.0')]
-            urllib.request.install_opener(opener)
-            
-            urllib.request.urlretrieve(url_model_cloud, model_path)
-            print("✅ [StudySync AI] Unduhan model bert_model_quantized.tflite berhasil diselesaikan!")
-        except Exception as e:
-            print(f"❌ [StudySync AI] Gagal mengunduh model dari Drive: {str(e)}")
-            
+    print("Warming up Knowledge Tracing model...")
     _ = get_model()
-
+    
+    print("Warming up SBERT Recommendation model...")
+    # Lakukan encode 1 teks *dummy* agar pipeline dimuat ke RAM
+    _ = sbert_model.encode(["warm up"], normalize_embeddings=True)
+    print("emua model berhasil disiapkan!")
 
 @app.get("/health")
 def health():
     return {"status": "ok", "service": "agnostic-kt-api"}
-
 
 @app.post("/sessions/start", response_model=StartSessionResponse)
 def start_session(payload: StartSessionRequest):
@@ -69,7 +59,6 @@ def start_session(payload: StartSessionRequest):
         topic_id=session.topic_id,
         attempts=0,
     )
-
 
 @app.post("/sessions/{session_id}/answer", response_model=AnswerResponse)
 def submit_answer(session_id: str, payload: AnswerInput):
@@ -106,7 +95,6 @@ def submit_answer(session_id: str, payload: AnswerInput):
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-
 
 @app.get("/sessions/{session_id}", response_model=SessionInfoResponse)
 def get_session(session_id: str):

@@ -11,33 +11,43 @@ export default function QuizResultPage() {
   const [recommendations, setRecommendations] = useState([]);
   const [loadingRecs, setLoadingRecs] = useState(false);
 
+  // 1. Mengambil hasil quiz dari localStorage saat komponen pertama kali dimuat
   useEffect(() => {
-    // Bersihkan data lama saat komponen masuk agar tidak menampilkan hasil quiz sebelumnya
-    const stored = sessionStorage.getItem(STORAGE_KEY);
-    if (!stored) {
-      setError("Hasil quiz belum tersedia.");
-      return;
+    try {
+      const storedData = localStorage.getItem(STORAGE_KEY);
+      if (storedData) {
+        setResult(JSON.parse(storedData));
+      } else {
+        setError("Tidak ada data hasil quiz terakhir yang ditemukan.");
+      }
+    } catch (err) {
+      console.error("Gagal membaca hasil dari localStorage", err);
+      setError("Gagal memuat data hasil quiz.");
     }
-    setResult(JSON.parse(stored));
   }, []);
 
+  // 2. Memanggil AI Recommendations ketika 'result' sudah berhasil dimuat
   useEffect(() => {
     if (!result) return;
 
     async function fetchAIRecommendations() {
       setLoadingRecs(true);
       try {
-        // Tentukan tingkat kesulitan dan kalimat prompt berdasarkan hasil KT AI
         const isStruggling = result.decision === "needs_remedial" || result.decision === "declining";
+        const topic = result.quizTitle || "Computer Science";
+        
+        // Gunakan deskripsi bahasa Inggris yang deskriptif agar SBERT lebih mudah 
+        // mencocokkan maknanya dengan judul dan deskripsi kursus Coursera
+        const semanticPrompt = isStruggling 
+            ? `Fundamental and basic concepts of ${topic} for beginners`
+            : `Advanced techniques, best practices, and real-world projects in ${topic}`;
         
         const payload = {
-          pretest_profile_text: isStruggling 
-            ? `Saya butuh belajar dasar-dasar tentang ${result.quizTitle} dari awal`
-            : `Saya ingin materi lanjutan dan praktik tentang ${result.quizTitle}`,
+          pretest_profile_text: semanticPrompt,
           taken_courses: [],
           preferred_difficulty: isStruggling ? "Beginner" : "Intermediate",
           skip_beginner: !isStruggling,
-          top_n: 2 // Ambil 2 rekomendasi terbaik saja agar tidak kepenuhan
+          top_n: 2
         };
 
         const recs = await getCourseRecommendations(payload);
@@ -192,32 +202,33 @@ export default function QuizResultPage() {
             </div>
 
             <p className="mt-4 text-sm leading-7 text-slate-600">
-              Tempat ini nanti bisa diisi rekomendasi dari AI, misalnya area yang kuat, area yang perlu diulang,
-              dan alasan kenapa sesi dihentikan atau dilanjutkan.
+              Berikut adalah evaluasi AI berdasarkan performa dan pola jawabanmu selama sesi ini.
             </p>
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               <div className="rounded-2xl bg-[#eef8e8] p-4">
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#4d8b41]">
-                  Kuat di
+                  Status
                 </p>
                 <p className="mt-2 text-sm font-semibold text-[#285b2f]">
-                  (placeholder) Komponen ini bisa dihubungkan ke output AI berikutnya
+                  {stateConfig?.title}
                 </p>
               </div>
 
               <div className="rounded-2xl bg-red-50 p-4">
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-700">
-                  Perlu review
+                  Saran AI
                 </p>
                 <p className="mt-2 text-sm font-semibold text-red-700">
-                  (placeholder) Temanmu bisa isi rekomendasi course / topik berikutnya di sini
+                  {result.decision === "passed" || result.decision === "continue"
+                    ? "Pertahankan performamu dan lanjut ke materi rekomendasi di samping."
+                    : "Sebaiknya ulangi materi ini dan fokus pada rekomendasi di samping."}
                 </p>
               </div>
             </div>
 
             <p className="mt-5 text-sm text-slate-500">
-              Alasan AI: {result.reason || "Belum ada alasan tambahan dari backend."}
+              Alasan detail AI: {result.reason || "Belum ada alasan tambahan dari backend."}
             </p>
           </div>
 

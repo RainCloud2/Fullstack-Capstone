@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import AppNavbar from "../components/AppNavbar";
-// Pastikan Anda sudah membuat dan meng-export getRecommendations di aiApi.js
-import { getRecommendations } from "../services/aiApi"; 
+import { getCourseRecommendations } from "../services/aiApi"; 
 
 export default function CoursePage() {
   const [courses, setCourses] = useState([]);
@@ -9,18 +8,34 @@ export default function CoursePage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fungsi untuk memanggil AI backend saat halaman dimuat
     const fetchAIRecommendations = async () => {
       try {
         setLoading(true);
-        // Sesuaikan payload ini dengan state/profil user yang sebenarnya
-        const response = await getRecommendations({
-          pretest_profile_text: "I want to learn advanced javascript and react",
-          skip_beginner: true,
+        
+        // PENTING: Samakan nama key dengan yang ada di OnboardingPage (pakai underscore _)
+        const storedOnboarding = localStorage.getItem("studysync_onboarding");
+        const onboardingData = storedOnboarding ? JSON.parse(storedOnboarding) : null;
+        
+        // Kalimat fallback jika user bypass onboarding
+        let semanticProfileText = "I want to learn programming, software engineering, and computer science basics";
+        let skipBeginner = false;
+
+        // Ambil kalimat sakti buatan OnboardingPage tadi
+        if (onboardingData && onboardingData.pretest_profile_text) {
+            semanticProfileText = onboardingData.pretest_profile_text;
+            
+            // Logika tambahan: jika levelnya intermediate/advanced, kita skip course beginner
+            if (onboardingData.level === "intermediate" || onboardingData.level === "advanced") {
+                skipBeginner = true;
+            }
+        }
+
+        const response = await getCourseRecommendations({
+          pretest_profile_text: semanticProfileText,
+          skip_beginner: skipBeginner, 
           top_n: 4
         });
         
-        // Response dari backend akan di-set ke state courses
         setCourses(response);
       } catch (err) {
         console.error("Gagal mengambil rekomendasi:", err);
@@ -43,16 +58,14 @@ export default function CoursePage() {
             <p className="text-sm font-bold uppercase tracking-[0.22em] text-[#4d8b41]">Course</p>
             <h1 className="font-display mt-2 text-4xl text-[#172017] sm:text-5xl">Rekomendasi course</h1>
             <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
-              Dikurasi AI sesuai posisimu di roadmap.
+              Dikurasi AI berdasarkan profil belajarmu.
             </p>
           </div>
         </section>
 
-        {/* Handling Loading & Error States */}
         {loading && <p className="text-slate-500 font-medium">AI sedang meracik rekomendasi terbaik untukmu...</p>}
         {error && <p className="text-red-500 font-medium">{error}</p>}
 
-        {/* Tampilkan data dari AI */}
         {!loading && !error && (
           <section className="grid gap-5 lg:grid-cols-2">
             {courses.map((course, index) => (
@@ -66,15 +79,12 @@ export default function CoursePage() {
 }
 
 function CourseCard({ course }) {
-  // Karena backend mengembalikan format data yang sedikit berbeda dari dummy data awal,
-  // kita sesuaikan prop mapping di komponen ini.
   return (
     <article className="section-card flex min-h-[260px] flex-col p-6 transition hover:-translate-y-1">
       <div className="flex items-start justify-between gap-3">
         <span className="rounded-full px-3 py-1 text-xs font-bold bg-[#e8ffe3] text-[#285b2f]">
           Coursera
         </span>
-        {/* Tampilkan Match Score dari AI */}
         <span className="rounded-full bg-[#285b2f] px-3 py-1 text-xs font-bold text-white">
           {course.match_score}% Match
         </span>
