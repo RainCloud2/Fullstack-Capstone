@@ -33,9 +33,9 @@ def warm_up_model():
     base_dir = os.path.dirname(os.path.abspath(__file__))
     model_path = os.path.join(base_dir, "..", "bert_model_quantized.tflite")
     
-    drive_file_id = "1su4W7LRC-QcerRSb5YkejXIe9n97p-z4"
+    drive_file_id = "1k9JgC9YeBctbq0KOWqjUBvKu-OLbBMtH"
     
-    url_model_cloud = f"https://docs.google.com/uc?export=download&id={drive_file_id}"
+    url_model_cloud = f"https://drive.google.com/uc?export=download&id{drive_file_id}"
     
     if not os.path.exists(model_path):
         print("🤖 [StudySync AI] File bert_model_quantized.tflite tidak ditemukan lokal. Mengunduh dari Google Drive...")

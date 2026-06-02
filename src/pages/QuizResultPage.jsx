@@ -12,18 +12,13 @@ export default function QuizResultPage() {
   const [loadingRecs, setLoadingRecs] = useState(false);
 
   useEffect(() => {
-    try {
-      const stored = sessionStorage.getItem(STORAGE_KEY);
-
-      if (!stored) {
-        throw new Error("Hasil quiz belum tersedia.");
-      }
-
-      const parsed = JSON.parse(stored);
-      setResult(parsed);
-    } catch (err) {
-      setError(`${err.message} Pastikan kamu sudah menyelesaikan quiz sebelumnya.`);
+    // Bersihkan data lama saat komponen masuk agar tidak menampilkan hasil quiz sebelumnya
+    const stored = sessionStorage.getItem(STORAGE_KEY);
+    if (!stored) {
+      setError("Hasil quiz belum tersedia.");
+      return;
     }
+    setResult(JSON.parse(stored));
   }, []);
 
   useEffect(() => {
