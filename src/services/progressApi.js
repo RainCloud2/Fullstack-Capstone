@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3001";
+const API_URL = import.meta.env.VITE_NODE_API_URL || "http://localhost:3001";
 const STORAGE_KEY = "studysync-progress";
 
 export const fallbackProgress = {

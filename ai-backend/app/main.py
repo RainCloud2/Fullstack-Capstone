@@ -27,7 +27,10 @@ app = FastAPI(title="Agnostic KT API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+            "https://[DOMAIN-VERCEL-KAMU].vercel.app", # Ganti dengan domain Vercel aslimu
+            "http://localhost:5173" # Untuk testing di komputer lokal
+        ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
