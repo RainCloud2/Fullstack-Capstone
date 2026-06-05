@@ -5,6 +5,8 @@ import { fallbackProgress, fetchProgress } from "../services/progressApi";
 
 export default function HomePage() {
   const [progress, setProgress] = useState(fallbackProgress);
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const userName = user?.name || "there";
 
   useEffect(() => {
     fetchProgress()
@@ -24,7 +26,7 @@ export default function HomePage() {
               Frontend Engineer Path
             </p>
             <h1 className="font-display max-w-2xl text-4xl leading-tight sm:text-5xl">
-              Selamat datang, Cariensya.
+              Selamat datang, {userName}.
             </h1>
             <p className="mt-4 max-w-2xl text-base leading-7 text-lime-50/85 sm:text-lg">
               Kamu sudah menyelesaikan {progress.totalProgress}% roadmap. Mulai dari fase pertama, kerjakan quiz, lalu progress akan naik otomatis.
