@@ -1,4 +1,4 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 
 const navItems = [
   { label: "Home", to: "/home" },
@@ -8,6 +8,22 @@ const navItems = [
 ];
 
 export default function AppNavbar() {
+  const navigate = useNavigate();
+
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+  const userName = storedUser?.name || "User";
+  const initial = userName.charAt(0).toUpperCase();
+
+  const streakDays = Number(localStorage.getItem("streakDays")) || 1;
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("streakDays");
+
+    navigate("/");
+  };
+
   return (
     <header className="sticky top-0 z-30 border-b border-emerald-950/10 bg-white/85 backdrop-blur-xl">
       <nav className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
@@ -44,14 +60,26 @@ export default function AppNavbar() {
           ))}
         </div>
 
-        <div className="flex items-center gap-3 rounded-full border border-emerald-950/10 bg-white px-2 py-2 shadow-sm">
-          <div className="hidden text-right sm:block">
-            <p className="text-sm font-bold text-[#172017]">Cariensya</p>
-            <p className="text-xs text-slate-500">7 day streak</p>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 rounded-full border border-emerald-950/10 bg-white px-2 py-2 shadow-sm">
+            <div className="hidden text-right sm:block">
+              <p className="text-sm font-bold text-[#172017]">{userName}</p>
+              <p className="text-xs text-slate-500">
+                {streakDays} day streak
+              </p>
+            </div>
+
+            <div className="grid h-10 w-10 place-items-center rounded-full bg-[#dff4d6] font-extrabold text-[#285b2f]">
+              {initial}
+            </div>
           </div>
-          <div className="grid h-10 w-10 place-items-center rounded-full bg-[#dff4d6] font-extrabold text-[#285b2f]">
-            C
-          </div>
+
+          <button
+            onClick={handleLogout}
+            className="rounded-full border border-red-100 bg-red-50 px-4 py-2 text-sm font-bold text-red-600 transition hover:bg-red-100"
+          >
+            Logout
+          </button>
         </div>
       </nav>
 

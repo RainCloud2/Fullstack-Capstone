@@ -1,8 +1,19 @@
-import { createServer } from "node:http";
-import { Buffer } from "node:buffer";
-import process from "node:process";
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
 
+import authRoutes from "./routes/authRoutes.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.join(__dirname, "..", ".env") });
+
+const app = express();
 const PORT = process.env.PORT || 3001;
+
 const quizResults = new Map();
 const progressState = {
   totalLessons: 40,
@@ -14,91 +25,93 @@ const progressState = {
   ],
 };
 
-const server = createServer(async (req, res) => {
-  const url = new URL(req.url, `http://${req.headers.host}`);
+app.use(cors());
+app.use(express.json());
 
-  setCorsHeaders(res);
-
-  if (req.method === "OPTIONS") {
-    return sendJson(res, 204, null);
-  }
-
-  try {
-    if (req.method === "GET" && url.pathname === "/api/health") {
-      return sendJson(res, 200, { status: "ok", service: "studysync-api" });
-    }
-
-    if (req.method === "GET" && url.pathname === "/api/progress") {
-      return sendJson(res, 200, { data: getProgressSummary() });
-    }
-
-    if (req.method === "POST" && url.pathname === "/api/quiz-results") {
-      const payload = await readBody(req);
-      const percent = Math.round((Number(payload.score) / Number(payload.totalQuestions)) * 100);
-      const id = Date.now().toString();
-      const result = {
-        id,
-        phaseId: payload.phaseId,
-        quizTitle: payload.quizTitle,
-        score: payload.score,
-        totalQuestions: payload.totalQuestions,
-        percent,
-        durationSeconds: payload.durationSeconds,
-        createdAt: new Date().toISOString(),
-        answers: payload.answers ?? [],
-      };
-
-      quizResults.set(id, result);
-      updatePhaseProgress(payload.phaseId, percent);
-
-      return sendJson(res, 201, { data: result, progress: getProgressSummary() });
-    }
-
-    if (req.method === "GET" && url.pathname.startsWith("/api/quiz-results/")) {
-      const id = url.pathname.split("/").pop();
-      const result = quizResults.get(id);
-
-      if (!result) {
-        return sendJson(res, 404, { error: "Quiz result not found" });
-      }
-
-      return sendJson(res, 200, { data: result });
-    }
-
-    return sendJson(res, 404, { error: "Route not found" });
-  } catch (error) {
-    return sendJson(res, 500, { error: "Internal server error", detail: error.message });
-  }
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "ok",
+    service: "studysync-api",
+  });
 });
 
-server.listen(PORT, () => {
+app.use("/api", authRoutes);
+
+app.get("/api/progress", (req, res) => {
+  res.status(200).json({
+    data: getProgressSummary(),
+  });
+});
+
+app.post("/api/quiz-results", (req, res) => {
+  const payload = req.body;
+  const totalQuestions = Number(payload.totalQuestions || 0);
+  const score = Number(payload.score || 0);
+  const percent = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
+  const id = Date.now().toString();
+  const result = {
+    id,
+    phaseId: payload.phaseId,
+    quizTitle: payload.quizTitle,
+    score,
+    totalQuestions,
+    percent,
+    durationSeconds: payload.durationSeconds,
+    createdAt: new Date().toISOString(),
+    answers: payload.answers ?? [],
+  };
+
+  quizResults.set(id, result);
+  updatePhaseProgress(payload.phaseId, percent);
+
+  res.status(201).json({
+    data: result,
+    progress: getProgressSummary(),
+  });
+});
+
+app.get("/api/quiz-results/:id", (req, res) => {
+  const result = quizResults.get(req.params.id);
+
+  if (!result) {
+    return res.status(404).json({
+      error: "Quiz result not found",
+    });
+  }
+
+  return res.status(200).json({
+    data: result,
+  });
+});
+
+app.use((req, res) => {
+  res.status(404).json({
+    error: "Route not found",
+  });
+});
+
+app.listen(PORT, () => {
   console.log(`StudySync API running at http://localhost:${PORT}`);
 });
 
-async function readBody(req) {
-  const chunks = [];
-  for await (const chunk of req) chunks.push(chunk);
-  const raw = Buffer.concat(chunks).toString("utf8");
-  return raw ? JSON.parse(raw) : {};
-}
-
-function sendJson(res, statusCode, payload) {
-  res.writeHead(statusCode, { "Content-Type": "application/json" });
-  res.end(payload === null ? "" : JSON.stringify(payload));
-}
-
 function getProgressSummary() {
   const totalProgress = Math.round(
-    progressState.phases.reduce((sum, phase) => sum + phase.progress, 0) / progressState.phases.length
+    progressState.phases.reduce((sum, phase) => sum + phase.progress, 0) /
+      progressState.phases.length
   );
   const results = [...quizResults.values()];
   const averageScore = results.length
-    ? Math.round(results.reduce((sum, result) => sum + result.percent, 0) / results.length)
+    ? Math.round(
+        results.reduce((sum, result) => sum + result.percent, 0) /
+          results.length
+      )
     : 0;
 
   return {
     totalProgress,
-    completedLessons: Math.round((progressState.totalLessons * totalProgress) / 100),
+    completedLessons: Math.round(
+      (progressState.totalLessons * totalProgress) / 100
+    ),
     totalLessons: progressState.totalLessons,
     completedQuizzes: results.length,
     averageScore,
@@ -119,16 +132,12 @@ function updatePhaseProgress(phaseId, percent) {
     phase.status = "Sedang berjalan";
   }
 
-  const currentIndex = progressState.phases.findIndex((item) => item.id === phaseId);
+  const currentIndex = progressState.phases.findIndex(
+    (item) => item.id === phaseId
+  );
   const nextPhase = progressState.phases[currentIndex + 1];
 
   if (phase.progress >= 80 && nextPhase?.status === "Terkunci") {
     nextPhase.status = "Belum dimulai";
   }
-}
-
-function setCorsHeaders(res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 }

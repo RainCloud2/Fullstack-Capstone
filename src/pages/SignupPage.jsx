@@ -3,18 +3,51 @@ import { useState } from "react";
 
 export default function SignupPage() {
   const navigate = useNavigate();
+
   const [name, setName] = useState("");
   const [dob, setDob] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSignup = () => {
+  const handleSignup = async (event) => {
+    event.preventDefault();
+
     if (!name || !dob || !email || !password) {
       alert("Please complete all fields.");
       return;
     }
 
-    navigate("/onboarding");
+    try {
+      const response = await fetch("http://localhost:3001/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || "Register failed.");
+        return;
+      }
+
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("streakDays");
+      localStorage.removeItem("onboardingCompleted");
+      localStorage.removeItem("onboardingAnswers");
+
+      navigate("/");
+    } catch (error) {
+      console.error(error);
+      alert("Gagal terhubung ke server.");
+    }
   };
 
   return (
@@ -43,14 +76,16 @@ export default function SignupPage() {
           <h1 className="font-display mt-3 text-5xl text-[#172017]">Sign up</h1>
           <p className="mt-3 text-slate-500">Sign up to continue using StudySync AI.</p>
 
-          <div className="mt-8 space-y-4">
-            <input className="h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 outline-none transition focus:border-[#4d8b41] focus:ring-4 focus:ring-green-100" type="text" placeholder="Your Name" value={name} onChange={(e) => setName(e.target.value)} />
-            <input className="h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 outline-none transition focus:border-[#4d8b41] focus:ring-4 focus:ring-green-100" type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
-            <input className="h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 outline-none transition focus:border-[#4d8b41] focus:ring-4 focus:ring-green-100" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-            <input className="h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 outline-none transition focus:border-[#4d8b41] focus:ring-4 focus:ring-green-100" type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-          </div>
+          <form onSubmit={handleSignup}>
+            <div className="mt-8 space-y-4">
+              <input className="h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 outline-none transition focus:border-[#4d8b41] focus:ring-4 focus:ring-green-100" type="text" placeholder="Your Name" value={name} onChange={(e) => setName(e.target.value)} />
+              <input className="h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 outline-none transition focus:border-[#4d8b41] focus:ring-4 focus:ring-green-100" type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
+              <input className="h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 outline-none transition focus:border-[#4d8b41] focus:ring-4 focus:ring-green-100" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <input className="h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 outline-none transition focus:border-[#4d8b41] focus:ring-4 focus:ring-green-100" type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            </div>
 
-          <button onClick={handleSignup} className="btn-primary mt-6 h-14 w-full">Sign up</button>
+            <button type="submit" className="btn-primary mt-6 h-14 w-full">Sign up</button>
+          </form>
 
           <div className="my-6 flex items-center gap-3 text-sm text-slate-400">
             <div className="h-px flex-1 bg-slate-200" />

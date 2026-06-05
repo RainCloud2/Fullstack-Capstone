@@ -9,16 +9,52 @@ const features = [
 
 export default function SigninPage() {
   const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = () => {
+  const handleLogin = async (event) => {
+    event.preventDefault();
+
     if (!email || !password) {
       alert("Please fill email and password.");
       return;
     }
 
-    navigate("/onboarding");
+    try {
+      const response = await fetch("http://localhost:3001/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || "Login failed.");
+        return;
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("streakDays", String(data.user?.streakDays || 1));
+
+      const onboardingCompleted = localStorage.getItem("onboardingCompleted");
+
+      if (onboardingCompleted === "true") {
+        navigate("/home");
+      } else {
+        navigate("/onboarding");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Gagal terhubung ke server.");
+    }
   };
 
   return (
@@ -31,17 +67,19 @@ export default function SigninPage() {
           <h1 className="font-display mt-3 text-5xl text-[#172017]">Sign in</h1>
           <p className="mt-3 text-slate-500">Please login to continue to your learning dashboard.</p>
 
-          <div className="mt-8 space-y-4">
-            <input className="h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 outline-none transition focus:border-[#4d8b41] focus:ring-4 focus:ring-green-100" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-            <input className="h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 outline-none transition focus:border-[#4d8b41] focus:ring-4 focus:ring-green-100" type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-          </div>
+          <form onSubmit={handleLogin}>
+            <div className="mt-8 space-y-4">
+              <input className="h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 outline-none transition focus:border-[#4d8b41] focus:ring-4 focus:ring-green-100" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <input className="h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 outline-none transition focus:border-[#4d8b41] focus:ring-4 focus:ring-green-100" type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            </div>
 
-          <label className="mt-5 flex items-center gap-3 text-sm font-semibold text-slate-600">
-            <input type="checkbox" className="h-5 w-5 rounded accent-[#285b2f]" />
-            Keep me logged in
-          </label>
+            <label className="mt-5 flex items-center gap-3 text-sm font-semibold text-slate-600">
+              <input type="checkbox" className="h-5 w-5 rounded accent-[#285b2f]" />
+              Keep me logged in
+            </label>
 
-          <button onClick={handleLogin} className="btn-primary mt-6 h-14 w-full">Sign in</button>
+            <button type="submit" className="btn-primary mt-6 h-14 w-full">Sign in</button>
+          </form>
 
           <div className="my-6 flex items-center gap-3 text-sm text-slate-400">
             <div className="h-px flex-1 bg-slate-200" />
