@@ -25,7 +25,18 @@ const progressState = {
   ],
 };
 
-app.use(cors({ origin: "https://fullstack-capstone-ten.vercel.app" }));
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",")
+  : ["http://localhost:5173"];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+}));
 app.use(express.json());
 
 app.get("/api/health", (req, res) => {
