@@ -25,7 +25,7 @@ const progressState = {
   ],
 };
 
-app.use(cors({ origin: "https://your-vercel-domain.vercel.app" }));
+app.use(cors({ origin: "https://fullstack-capstone-ten.vercel.app" }));
 app.use(express.json());
 
 app.get("/api/health", (req, res) => {
