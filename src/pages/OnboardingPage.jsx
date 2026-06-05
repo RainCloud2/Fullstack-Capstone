@@ -115,6 +115,7 @@ export default function OnboardingPage() {
     };
 
     localStorage.setItem("studysync_onboarding", JSON.stringify(payload));
+    localStorage.setItem("onboardingCompleted", "true");
     navigate("/home");
   };
 
