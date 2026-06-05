@@ -1,7 +1,7 @@
-const API_URL = import.meta.env.VITE_NODE_API_URL || "http://localhost:3001";
-
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+
+const API_URL = import.meta.env.VITE_NODE_API_URL || "http://localhost:3001";
 
 const features = [
   ["Belajar sesuai levelmu", "AI menyesuaikan materi berdasarkan skill kamu saat ini."],
