@@ -1,3 +1,5 @@
+const API_URL = import.meta.env.VITE_NODE_API_URL || "http://localhost:3001";
+
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
@@ -18,7 +20,7 @@ export default function SignupPage() {
     }
 
     try {
-      const response = await fetch("http://localhost:3001/api/register", {
+      const response = await fetch(`${API_URL}/api/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
